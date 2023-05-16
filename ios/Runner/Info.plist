@@ -47,5 +47,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!--Privacy-Camera Usage Scheme-->
+	<key>NSCameraUsageDescription</key>
+	<string>카메라 접근 권한이 필요합니다.</string>
+	<!-- Privacy-Microphone Usage Scheme -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>마이크 접근 권한이 필요합니다.</string>
 </dict>
 </plist>
