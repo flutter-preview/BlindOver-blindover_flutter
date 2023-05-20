@@ -14,20 +14,21 @@ class TestScreen extends StatelessWidget {
   }
 }
 
-class InitialScreen extends StatefulWidget {
-  const InitialScreen({super.key});
+class PreviewScreen extends StatefulWidget {
+  const PreviewScreen({super.key});
 
   @override
-  State<InitialScreen> createState() => _InitialScreenState();
+  State<PreviewScreen> createState() => _PreviewScreenState();
 }
 
-class _InitialScreenState extends State<InitialScreen> {
+class _PreviewScreenState extends State<PreviewScreen> {
   late CameraController cameraController;
   late List<CameraDescription> cameras;
 
   @override
   void initState() {
     super.initState();
+    cameraController.buildPreview();
     initializeCamera();
   }
 
@@ -48,6 +49,6 @@ class _InitialScreenState extends State<InitialScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return CameraPreview(cameraController);
   }
 }
