@@ -1,18 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-
-class TestScreen extends StatelessWidget {
-  const TestScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text("권한 요청 통과 테스트 스크린"),
-      ),
-    );
-  }
-}
+import 'package:permission_handler/permission_handler.dart';
 
 class PreviewScreen extends StatefulWidget {
   const PreviewScreen({super.key});
@@ -21,34 +9,79 @@ class PreviewScreen extends StatefulWidget {
   State<PreviewScreen> createState() => _PreviewScreenState();
 }
 
-class _PreviewScreenState extends State<PreviewScreen> {
-  late CameraController cameraController;
-  late List<CameraDescription> cameras;
+class _PreviewScreenState extends State<PreviewScreen>
+    with WidgetsBindingObserver {
+  CameraController? cameraController;
+  List<CameraDescription>? cameras;
 
-  @override
-  void initState() {
-    super.initState();
-    cameraController.buildPreview();
-    initializeCamera();
+  //카메라 권한
+  bool isCameraGranted = false;
+  //기본 수치 값
+  double minAvailableZoom = 1.0;
+  double maxAvailableZoom = 1.0;
+  double currentZoomLevel = 1.0;
+  double minAvailableExposureOffset = 0.0;
+  double maxAvailableExposureOffset = 0.0;
+  double currentExposureOffset = 0.0;
+  double currentScale = 1.0;
+  double baseScale = 1.0;
+
+  //화면 위 사용자의 손가락의 개수를 확인하기 위한 Count 변수
+  int points = 0;
+
+  ///해상도 프리셋
+  final resolutionPreset = ResolutionPreset.values;
+
+  Future<void> reset() async {
+    currentZoomLevel = 1.0;
   }
 
-  Future<void> initializeCamera() async {
-    cameras = await availableCameras();
-    if (cameras.isEmpty) {
-      return;
+  Future<void> allowPermission() async {
+    await Permission.camera.request();
+
+    var cameraStatus = await Permission.camera.status;
+
+    if (cameraStatus.isGranted) {
+      setState(() => isCameraGranted = true);
+      //TODO: 새로운 카메라 지정. 캡처링 이미지 새로고침
     } else {
-      //TODO: 화면 전환 등 다음 작업을 위한 내용이 추가되어야함
+      //TODO: 에러 처리하고 다시 카메라 권한을 받을 수 있도록 해야함
     }
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
   void dispose() {
-    cameraController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState appLifecycleState) {
+    final CameraController? controller = cameraController;
+    if (controller == null || !controller.value.isInitialized) {
+      return;
+    }
+
+    if (appLifecycleState == AppLifecycleState.inactive) {
+      controller.dispose();
+    } else if (appLifecycleState == AppLifecycleState.resumed) {
+      //InitializeCameraController의 controller description
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return CameraPreview(cameraController);
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(),
+        body: const Placeholder(),
+      ),
+    );
   }
 }
