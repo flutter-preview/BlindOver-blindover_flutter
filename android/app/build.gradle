@@ -27,7 +27,8 @@ apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
     namespace "com.example.blindover_flutter"
-    compileSdkVersion flutter.compileSdkVersion
+    // `flutter.compileSdkVersion`에서 `33`으로 변경
+    compileSdkVersion 33
     ndkVersion flutter.ndkVersion
 
     compileOptions {
