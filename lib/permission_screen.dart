@@ -8,7 +8,7 @@ import 'package:lottie/lottie.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:blindover_flutter/preview_screen.dart';
-import 'package:blindover_flutter/widgets/constraint_large_button.dart';
+import 'package:blindover_flutter/widgets/large_action_button.dart';
 import 'package:blindover_flutter/utilities/palette.dart';
 
 class PermissionScreen extends StatefulWidget {
