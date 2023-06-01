@@ -96,9 +96,9 @@ class _PermissionScreenState extends State<PermissionScreen> {
                   child: lottieCamera,
                 ),
                 const SizedBox(height: 50.0),
-                ConstraintLargeButton(
+                LargeActionButton(
                   label: "label",
-                  value: "허용하기",
+                  words: "허용하기",
                   onTap: () async {
                     await Permission.camera.request();
                     isEnabled = await checkPermission();
