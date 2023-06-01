@@ -1,6 +1,7 @@
-import 'dart:ui';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
+
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -13,7 +14,8 @@ class PreviewScreen extends StatefulWidget {
 
 class _PreviewScreenState extends State<PreviewScreen>
     with WidgetsBindingObserver {
-  CameraController? cameraController;
+  CameraController? _cameraController;
+
   List<CameraDescription>? cameras;
 
   //카메라 권한
@@ -55,15 +57,47 @@ class _PreviewScreenState extends State<PreviewScreen>
   }
 
   ///카메라 초기화 비동기 함수
-  Future<void> initializeCameraController(
+  Future<void> _initializeCameraController(
       CameraDescription cameraDescription) async {
-    final CameraController initialCameraController = CameraController(
+    final CameraController cameraController = CameraController(
       cameraDescription,
       ResolutionPreset.medium,
       imageFormatGroup: ImageFormatGroup.jpeg,
     );
+    _cameraController = cameraController;
 
-    cameraController = initialCameraController;
+    cameraController.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+      if (cameraController.value.hasError) {
+        //TODO: 나중에 스낵바 또는 팝업으로 오류를 처리하는 형태로 바꿔야함
+        log("카메라 오류: ${cameraController.value.errorDescription}");
+      }
+    });
+
+    try {
+      await cameraController.initialize();
+      await Future.wait(
+        [
+          cameraController
+              .getMaxZoomLevel()
+              .then((double value) => maxAvailableZoom = value),
+          cameraController
+              .getMaxZoomLevel()
+              .then((double value) => minAvailableZoom = value),
+        ],
+      );
+    } on CameraException catch (e) {
+      switch (e.code) {
+        case "CameraAccessDenied":
+          log("카메라 접근이 거부되었습니다.");
+          break;
+        case "CameraAccessDeniedWithoutPrompt":
+          log("카메라 접근이 거부되었습니다. 설정에서 카메라 권한을 허용해야 합니다.");
+          break;
+      }
+    }
   }
 
   @override
@@ -80,24 +114,24 @@ class _PreviewScreenState extends State<PreviewScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState appLifecycleState) {
-    final CameraController? controller = cameraController;
-    if (controller == null || !controller.value.isInitialized) {
+    final CameraController? cameraController = _cameraController;
+
+    if (cameraController == null || !cameraController.value.isInitialized) {
       return;
     }
 
     if (appLifecycleState == AppLifecycleState.inactive) {
-      controller.dispose();
+      cameraController.dispose();
     } else if (appLifecycleState == AppLifecycleState.resumed) {
-      initializeCameraController(cameraController!.description);
+      _initializeCameraController(_cameraController!.description);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(),
-        body: const Placeholder(),
+    return const Scaffold(
+      body: SafeArea(
+        child: Text("카메라 화면이 나타납니다."),
       ),
     );
   }
