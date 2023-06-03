@@ -1,18 +1,24 @@
 import 'dart:io';
 import 'dart:developer';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:lottie/lottie.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'package:blindover_flutter/preview_screen.dart';
+import 'package:blindover_flutter/camera_preview_screen.dart';
 import 'package:blindover_flutter/widgets/large_action_button.dart';
 import 'package:blindover_flutter/utilities/palette.dart';
 
 class PermissionScreen extends StatefulWidget {
-  const PermissionScreen({Key? key}) : super(key: key);
+  const PermissionScreen({
+    Key? key,
+    required this.camera,
+  }) : super(key: key);
+
+  final CameraDescription camera;
 
   @override
   State<PermissionScreen> createState() => _PermissionScreenState();
@@ -60,14 +66,14 @@ class _PermissionScreenState extends State<PermissionScreen> {
       Navigator.pushReplacement(
         context,
         CupertinoPageRoute(
-          builder: (context) => const PreviewScreen(),
+          builder: (context) => CameraPreviewScreen(camera: widget.camera),
         ),
       );
     } else if (Platform.isAndroid) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const PreviewScreen(),
+          builder: (context) => CameraPreviewScreen(camera: widget.camera),
         ),
       );
     }
