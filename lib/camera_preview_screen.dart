@@ -1,11 +1,30 @@
 import 'dart:io';
+import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:camera/camera.dart';
+import 'package:dio/dio.dart';
 
 import 'package:blindover_flutter/widgets/large_action_button.dart';
+
+/// 카메라 화면에서 캡쳐 버튼을 눌렀을 때, 서버로 해당 이미지를 전송합니다.
+Future<void> sendCapturedImage(XFile image) async {
+  const String url = "https://blindover.com/api/classify/v1/test";
+  final dio = Dio();
+  try {
+    var request = await dio.post(
+      url,
+      data: image,
+    );
+    if (request.statusCode == 200) {
+      log("${request.statusMessage} ${request.data}");
+    }
+  } catch (e) {
+    log("오류가 발생했습니다: $e");
+  }
+}
 
 class CameraPreviewScreen extends StatefulWidget {
   const CameraPreviewScreen({
@@ -54,6 +73,19 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen>
   /// 카메라 해상도 설정
   final myResolutionPreset = ResolutionPreset.medium;
 
+  /// 카메라 화면에서 캡쳐 버튼을 누르면 이미지를 캡쳐합니다.
+  Future<void> captureImage() async {
+    XFile capturedImage;
+    try {
+      if (_cameraController.value.isInitialized) {
+        capturedImage = await _cameraController.takePicture();
+        await sendCapturedImage(capturedImage);
+      }
+    } on CameraException catch (e) {
+      log("에러: ${e.code} 내용: ${e.description}");
+    }
+  }
+
   /// 현재 설정된 카메라의 정보를 초기화하는 비동기 함수
   Future<void> resetCamera() async {
     currentZoomLevel = 1.0;
@@ -79,6 +111,7 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen>
   void dispose() {
     /// 카메라 위젯으로부터 받은 카메라 정보를 해제합니다.
     resetCamera();
+    captureImage();
     _cameraController.dispose();
     super.dispose();
   }
@@ -120,9 +153,7 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen>
                   LargeActionButton(
                     label: "스캔버튼",
                     words: "스캔하기",
-                    onTap: () {
-                      /// TODO: 스캔 버튼 눌렀을 때 서버에 이미지를 전송하는 코드 작성해야함
-                    },
+                    onTap: () => captureImage,
                   ),
                 ],
               );
