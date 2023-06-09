@@ -7,11 +7,13 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  camera: ^0.10.5
   flutter:
     sdk: flutter
+  camera: ^0.10.5
+  dio: ^5.1.2
   lottie: ^2.4.0
   permission_handler: ^10.2.0
+  path_provider: ^2.0.15
 
 dev_dependencies:
   flutter_test:

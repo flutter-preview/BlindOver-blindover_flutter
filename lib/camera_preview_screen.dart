@@ -1,12 +1,20 @@
 import 'dart:io';
+import 'dart:developer';
 
+import 'package:blindover_flutter/utilities/palette.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:camera/camera.dart';
+import 'package:dio/dio.dart';
 
 import 'package:blindover_flutter/widgets/large_action_button.dart';
+import 'package:blindover_flutter/widgets/large_nudge_card.dart';
+import 'package:blindover_flutter/widgets/large_text.dart';
+import 'package:blindover_flutter/controllers/picture_controller.dart';
 
+///- [CameraPreviewScreen]은 카메라 미리보기 화면과 캡쳐를 할 수 있습니다.
+///- 플러터 에뮬레이터나 iOS 시뮬레이터에서는 동작하지 않습니다.
 class CameraPreviewScreen extends StatefulWidget {
   const CameraPreviewScreen({
     Key? key,
@@ -26,6 +34,8 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen>
 
   /// 카메라 초기화 비동기 함수
   late Future<void> _initializeCameraControllerFuture;
+
+  late PictureController _pictureController;
 
   /// 카메라의 정보를 설정하는 변수
   List<CameraDescription>? cameras;
@@ -54,7 +64,50 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen>
   /// 카메라 해상도 설정
   final myResolutionPreset = ResolutionPreset.medium;
 
-  /// 현재 설정된 카메라의 정보를 초기화하는 비동기 함수
+  ///- [uploadPictureToServer] 비동기 함수는 임시 저장된 이미지를 서버로 전송합니다.
+  Future<void> uploadPictureToServer() async {
+    const String url =
+        "OUR_SERVER_URL_LIKE_THIS{http://blindover.duckdns.org:8080/storage}";
+    final file = File(await _pictureController.getTemporaryPicturePath());
+    final dio = Dio();
+    try {
+      final formData = FormData.fromMap({
+        "image": await MultipartFile.fromFile(file.path),
+      });
+      final request = await dio.post(
+        url,
+        data: {formData},
+      );
+      if (request.statusCode == 200) {
+        log("이미지를 서버로 전송하는데 성공했습니다.${request.statusMessage} ${request.data}");
+      } else {
+        log("이미지를 서버로 전송하는데 실패했습니다.${request.statusMessage} ${request.data}");
+      }
+    } on SocketException catch (e) {
+      log("서버와 연결이 원활하지 않습니다.${e.message}");
+    }
+  }
+
+  ///- [capture] 비동기 함수는 사용자가 캡처 버튼을 누르면 실행되는 함수입니다.
+  ///- [getTemporaryPicturePath] 비동기 함수를 통해 임시 저장된 이미지의 경로를 가져옵니다.
+  ///- [takePictureToTemporaryFile] 비동기 함수를 통해 임시 저장된 이미지를 파일로 저장합니다.
+  ///- [uploadPictureToServer] 비동기 함수를 통해 임시 저장된 이미지를 서버로 전송합니다.
+  Future<void> capture() async {
+    XFile picture;
+    try {
+      if (_cameraController.value.isInitialized) {
+        picture = await _cameraController.takePicture();
+        await _pictureController.getTemporaryPicturePath();
+        await _pictureController.takePictureToTemporaryFile(picture);
+        log("사진을 캡처하는데 성공했습니다.${picture.path}");
+        // await uploadPictureToServer(); // TODO: 서버 배포 후 주석 해제
+      }
+    } on CameraException catch (e) {
+      log("카메라를 동작하는데 실패했습니다.${e.code}${e.description}");
+    }
+  }
+
+  /// 현재 설정된 카메라의 정보를 초기화하는 비동기 함수입니다.
   Future<void> resetCamera() async {
     currentZoomLevel = 1.0;
     currentScale = 1.0;
@@ -73,13 +126,18 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen>
 
     /// 카메라 컨트롤러를 초기화합니다. 이는 Future를 반환합니다.
     _initializeCameraControllerFuture = _cameraController.initialize();
+
+    /// 사진 컨트롤러를 초기화합니다.
+    _pictureController = PictureController();
   }
 
   @override
   void dispose() {
     /// 카메라 위젯으로부터 받은 카메라 정보를 해제합니다.
-    resetCamera();
-    _cameraController.dispose();
+    if (_cameraController.value.isInitialized) {
+      resetCamera();
+      _cameraController.dispose();
+    }
     super.dispose();
   }
 
@@ -100,36 +158,38 @@ class _CameraPreviewScreenState extends State<CameraPreviewScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Palette.onSurface,
       body: SafeArea(
         child: FutureBuilder<void>(
           future: _initializeCameraControllerFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              if (Platform.isIOS) {
-                return const CupertinoActivityIndicator();
-              } else if (Platform.isAndroid) {
-                return const CircularProgressIndicator();
-              }
-            } else if (snapshot.connectionState == ConnectionState.done) {
+              return Platform.isAndroid
+                  ? const CircularProgressIndicator()
+                  : const CupertinoActivityIndicator();
+            }
+            if (snapshot.connectionState == ConnectionState.done) {
               return Column(
                 children: [
-                  const LargeActionButton(label: "이곳에 글자가 표시됩니다.", words: "-"),
+                  const LargeNudgeCard(
+                    width: double.infinity,
+                    height: 100.0,
+                    child: LargeText(words: "카메라 화면"),
+                  ),
                   Expanded(
                     child: CameraPreview(_cameraController),
                   ),
+                  const SizedBox(height: 25.0),
                   LargeActionButton(
-                    label: "스캔버튼",
-                    words: "스캔하기",
-                    onTap: () {
-                      /// TODO: 스캔 버튼 눌렀을 때 서버에 이미지를 전송하는 코드 작성해야함
-                    },
+                    label: "촬영버튼",
+                    words: "촬영하기",
+                    onTap: () => capture(),
                   ),
+                  const SizedBox(height: 25.0),
                 ],
               );
             }
-            return Semantics(
-              child: Container(),
-            );
+            return Container();
           },
         ),
       ),
