@@ -8,9 +8,11 @@ import 'package:camera/camera.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'package:blindover_flutter/debug_screen.dart';
-import 'package:blindover_flutter/permission_screen.dart';
-import 'package:blindover_flutter/camera_preview_screen.dart';
+import 'package:blindover_flutter/screens/permission_screen.dart';
+import 'package:blindover_flutter/screens/camera_preview_screen.dart';
+import 'package:blindover_flutter/widgets/large_action_button.dart';
+import 'package:blindover_flutter/widgets/large_nudge_card.dart';
+import 'package:blindover_flutter/widgets/large_text.dart';
 
 ///- [CameraDescription]은 카메라의 정보를 담고 있습니다.
 ///- 사용 가능한 카메라를 주입할 수 있도록 [CameraDescription] 유형의 리스트 [cameras]를 생성합니다.
@@ -79,6 +81,39 @@ class MainApp extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// [DebugScreen]은 커스텀 위젯을 디버깅하기 위한 화면입니다.
+/// 에뮬레이터 또는 시뮬레이터로 앱을 디버깅할 때 사용합니다.
+class DebugScreen extends StatelessWidget {
+  const DebugScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.orangeAccent,
+          title: const LargeNudgeCard(
+            width: double.infinity,
+            height: 100.0,
+            child: LargeText(words: "카메라 화면"),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            children: [
+              LargeActionButton(
+                label: "촬영버튼",
+                words: "촬영하기",
+                onTap: () => (),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
