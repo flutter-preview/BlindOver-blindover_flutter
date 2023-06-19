@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:developer';
 
-import 'package:blindover_flutter/utilities/palette.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +10,7 @@ import 'package:dio/dio.dart';
 import 'package:blindover_flutter/widgets/large_action_button.dart';
 import 'package:blindover_flutter/widgets/large_nudge_card.dart';
 import 'package:blindover_flutter/widgets/large_text.dart';
+import 'package:blindover_flutter/utilities/palette.dart';
 import 'package:blindover_flutter/controllers/picture_controller.dart';
 
 ///- [CameraPreviewScreen]은 카메라 미리보기 화면과 캡쳐를 할 수 있습니다.
