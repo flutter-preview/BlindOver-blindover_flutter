@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:camera/camera.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:blindover_flutter/debug_screen.dart';
@@ -16,15 +17,18 @@ import 'package:blindover_flutter/camera_preview_screen.dart';
 List<CameraDescription> cameras = <CameraDescription>[];
 
 Future<void> main() async {
+  await Future.delayed(const Duration(seconds: 2));
   try {
     /// [runApp] 호출되기 이전에 초기화가 필요한 플러그인을 먼저 호출합니다.
     WidgetsFlutterBinding.ensureInitialized();
+    FlutterNativeSplash.preserve(widgetsBinding: WidgetsBinding.instance);
 
     /// [cameras] 리스트 자료형에 활성화 가능한 카메라를 주입합니다.
     cameras = await availableCameras();
   } on CameraException catch (e) {
     log("카메라 연결에 실패했습니다.\n내용:[${e.code}: ${e.description}]");
   }
+  FlutterNativeSplash.remove();
 
   /// 카메라가 주입되지 않은 경우 디버그 화면을 출력합니다.
   /// 카메라가 주입되지 않은 경우는 시뮬레이터에서 실행하거나 앱이 디버그 모드인 경우입니다.
