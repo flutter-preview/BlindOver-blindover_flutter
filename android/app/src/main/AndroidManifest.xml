@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
-        android:label="blindover_flutter"
+        android:label="블라인드오버"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
