@@ -1,0 +1,27 @@
+name: Auto Increment Version Code
+
+on:
+  push:
+    branches: [ main ]
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v3
+
+      - name: Get current version code
+        id: get_version_code
+        run: |
+          echo "::set-output name=version_code::$(grep 'version_code:' pubspec.yaml | awk '{print $2}')"
+
+      - name: Increment version code
+        id: increment_version_code
+        run: |
+          echo "::set-output name=version_code::$((${{ steps.get_version_code.outputs.version_code }} + 1))"
+
+      - name: Update pubspec.yaml
+        run: |
+          sed -i "s/version_code: ${{ steps.get_version_code.outputs.version_code }}/version_code: ${{ steps.increment_version_code.outputs.version_code }}/g" pubspec.yaml
